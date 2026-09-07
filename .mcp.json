@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "binance": {
+      "type": "http",
+      "url": "https://agent.binance.com/mcp/agentic"
+    },
+    "sentinel": {
+      "command": "node",
+      "args": ["./mcp/dist/index.js"],
+      "env": {
+        "SENTINEL_URL": "http://localhost:3000"
+      }
+    }
+  }
+}
