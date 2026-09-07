@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  /* Monochrome ground. */
+  --color-ink: #080809;
+  --color-ink-2: #0d0e10;
+  --color-panel: #101113;
+  --color-panel-2: #16181b;
+  --color-edge: #202225;
+  --color-edge-bright: #2e3135;
+  --color-paper: #f2f2ef;
+  --color-fg: #ececea;
+  --color-muted: #8b8d90;
+  --color-dim: #5a5d61;
+
+  /* The one accent. Lime is the system-positive state: allowed, attested, passing. */
+  --color-acid: #ccff00;
+
+  /* Danger and hold. Not accents — semantics. */
+  --color-bad: #ff4d4d;
+  --color-warn: #ffb800;
+
+  --font-display: var(--font-space), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+html,
+body {
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+body {
+  font-feature-settings: "tnum";
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tracked-out utility text — the counterweight to the massive display type. */
+.util {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Edge-to-edge transparent dot grid. */
+.dot-grid {
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.09) 1px,
+    transparent 1px
+  );
+  background-size: 26px 26px;
+}
+
+.dot-grid-dense {
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.055) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}
+
+/* Fades the grid out toward the edges so it reads as depth, not wallpaper. */
+.grid-fade {
+  mask-image: radial-gradient(ellipse 90% 70% at 30% 40%, #000 30%, transparent 100%);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.slide-in { animation: slide-in 0.25s ease-out; }
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(2400%); }
+}
+.scan-line { animation: scan 7s linear infinite; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-edge-bright);
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot,
+  .scan-line,
+  .slide-in {
+    animation: none;
+  }
+}
