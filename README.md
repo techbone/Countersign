@@ -34,6 +34,15 @@ questions:
 
 Sentinel answers all three.
 
+## Who this is for
+
+Developers building agents against Agent OS — not end users. Sentinel is
+infrastructure: it assumes you are the operator, running it on your own machine,
+in front of your own sub-account. It is a local control plane with no auth and a
+JSON state file, deliberately, because the operator and the machine are the same
+person here. Scaling it to a team means a database, per-agent identity, and an
+authenticated dashboard — see [Notes and limits](#notes-and-limits).
+
 ## What it is
 
 Sentinel sits between your agent and Binance as a second MCP server. The agent
@@ -126,19 +135,19 @@ waiting for the agent to ask permission for its next trade.
 
 ## Quickstart
 
-Requires Node 20+.
+Requires Node 20+ and [Claude Code](https://claude.com/claude-code).
 
 ```bash
-# 1. install
-cd web && npm install && cd ../mcp && npm install && npm run build && cd ..
+git clone git@github.com:techbone/sentinel.git && cd sentinel
 
-# 2. start the control plane (dashboard + policy API)
-cd web && npm run dev          # landing → http://localhost:3000
-                               # control plane → /dashboard
+npm run setup     # installs both packages, builds the MCP server
+npm run dev       # landing → localhost:3000 · control plane → /dashboard
 
-# 3. connect the agent (from the repo root, in another terminal)
-claude
+claude            # in a second terminal, from the repo root
 ```
+
+Other scripts: `npm test` (42 tests), `npm run demo` (seed a session),
+`npm run build`.
 
 `.mcp.json` in the repo root registers both servers, so Claude Code picks them
 up automatically:

@@ -1,0 +1,14 @@
+{
+  "name": "sentinel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Risk control plane for Binance Agent OS",
+  "scripts": {
+    "setup": "npm --prefix web install && npm --prefix mcp install && npm --prefix mcp run build",
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build && npm --prefix mcp run build",
+    "test": "npm --prefix web test",
+    "demo": "node scripts/demo.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
