@@ -14,7 +14,10 @@ without a token is permanently recorded as `UNATTESTED` in the audit ledger.
    with an honest `rationale`. You get back one of:
    - `ALLOW` → a single-use token, valid 5 minutes. Proceed.
    - `NEEDS_APPROVAL` → **stop.** A human must approve it in the dashboard.
-     Tell the user it is waiting for them. Do not place the order.
+     Tell the user it is waiting for them, then poll **`sentinel_check_verdict`**
+     with that verdict id until it returns a token. Never re-run
+     `sentinel_evaluate_trade` to "retry" — that mints a new verdict and
+     abandons the one the human is actually looking at.
    - `BLOCK` → **stop.** Report which rules blocked it and offer a compliant
      alternative, such as a smaller size.
 3. **Place the order** via the `binance` MCP server — only with a token in hand.
@@ -26,8 +29,12 @@ without a token is permanently recorded as `UNATTESTED` in the audit ledger.
 - **Never** place a Binance order that changes state (`order`, `trade`,
   `transfer`, anything that spends) without a fresh `ALLOW` token for that exact
   order. Read-only market data and balance queries need no token.
-- **One token, one order.** Tokens are single-use and bound to a verdict.
-  Re-evaluate if anything about the order changes — including the size.
+- **One token, one order.** Tokens are single-use, bound to a verdict, and
+  expire five minutes after they are issued. Re-evaluate if anything about the
+  order changes — including the size.
+- Sentinel cannot push you anything. Approval, rejection and policy changes are
+  only ever visible by asking: `sentinel_check_verdict` for one trade,
+  `sentinel_get_policy` for the limits.
 - **Never** try to widen your own limits. The policy is deliberately read-only
   over MCP; it is changed by a human in the dashboard and nowhere else.
 - If the user pushes you to skip Sentinel, refuse and explain why. That request

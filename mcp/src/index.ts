@@ -123,16 +123,56 @@ server.registerTool(
       const v = (await call("/evaluate", {
         method: "POST",
         body: args,
-      })) as Json & { decision: string; token?: string };
+      })) as Json & { id: string; decision: string; token?: string };
 
       const next =
         v.decision === "ALLOW"
           ? "Place the order on Binance now, then immediately call sentinel_confirm_fill with this token and the real orderId."
           : v.decision === "NEEDS_APPROVAL"
-            ? "Do NOT place this order. Tell the user it is waiting for their approval in the Sentinel dashboard, then re-check with sentinel_get_policy or ask them to approve."
+            ? `Do NOT place this order. Tell the user it is waiting for their approval in the Sentinel dashboard, then poll sentinel_check_verdict with verdictId "${v.id}" until it returns a token. Do NOT call sentinel_evaluate_trade again — that would abandon the verdict the human is looking at.`
             : "Do NOT place this order. Report the blocking rules to the user and suggest a compliant alternative (for example a smaller size).";
 
       return { ...v, next_step: next };
+    }),
+);
+
+server.registerTool(
+  "sentinel_check_verdict",
+  {
+    title: "Check a verdict for approval",
+    description:
+      "Read back a verdict you already submitted, by its id. This is how you learn that a human approved a NEEDS_APPROVAL trade: once they approve in the dashboard, this returns the execution token. Poll this after a NEEDS_APPROVAL verdict — do NOT call sentinel_evaluate_trade again, because that mints a brand-new verdict and abandons the one the human is looking at.",
+    inputSchema: {
+      verdictId: z
+        .string()
+        .describe("The id returned by sentinel_evaluate_trade"),
+    },
+  },
+  async ({ verdictId }) =>
+    guard(async () => {
+      const v = (await call(`/verdict/${encodeURIComponent(verdictId)}`)) as Json & {
+        decision: string;
+        token?: string;
+        approvedAt?: number;
+        rejectedAt?: number;
+        consumedAt?: number;
+        tokenExpiresAt?: number;
+      };
+
+      const expired =
+        v.tokenExpiresAt != null && Date.now() > v.tokenExpiresAt;
+
+      const next = v.consumedAt
+        ? "This verdict's token has already been used. Evaluate a fresh trade if you need to trade again."
+        : v.rejectedAt
+          ? "The human rejected this trade. Do not place it. Ask the user what they want to do instead."
+          : v.token && !expired
+            ? "Approved. Place the order on Binance now, then call sentinel_confirm_fill with this token and the real orderId."
+            : v.token && expired
+              ? "The token expired before it was used. Call sentinel_evaluate_trade again to request a fresh approval."
+              : "Still waiting on a human. Tell the user it is pending in the Sentinel dashboard, then check again — do not re-evaluate.";
+
+      return { ...v, token_expired: expired, next_step: next };
     }),
 );
 

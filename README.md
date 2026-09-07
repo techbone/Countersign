@@ -172,6 +172,7 @@ reconciliation. Then open http://localhost:3000/dashboard.
 |---|---|
 | `sentinel_get_policy` | Read limits and live headroom. Read-only. |
 | `sentinel_evaluate_trade` | **Mandatory pre-trade check.** Returns ALLOW / BLOCK / NEEDS_APPROVAL. |
+| `sentinel_check_verdict` | Read a verdict back by id — how the agent learns a human approved it. |
 | `sentinel_confirm_fill` | Attest an executed fill against its single-use token. |
 | `sentinel_reconcile` | Diff exchange history against the ledger; flag unattested orders. |
 | `sentinel_session_report` | Verdict counts, attestation coverage, drawdown, top blocking rules. |
