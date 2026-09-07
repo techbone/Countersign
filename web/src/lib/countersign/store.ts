@@ -1,5 +1,5 @@
 // Single source of truth for policy, risk state and the attestation ledger.
-// Held in memory, mirrored to .sentinel/state.json so a dev-server restart or
+// Held in memory, mirrored to .countersign/state.json so a dev-server restart or
 // an MCP reconnect does not lose the audit trail.
 
 import { createHmac, randomBytes, randomUUID } from "node:crypto";
@@ -13,7 +13,7 @@ import {
   type Fill,
   type Policy,
   type RiskState,
-  type SentinelState,
+  type CountersignState,
   type TradeIntent,
   type Verdict,
 } from "./types";
@@ -21,8 +21,8 @@ import {
 // Statically scoped to a subfolder of the project: a path that escapes cwd makes
 // Turbopack trace (and bundle) the entire repository into the server output.
 const STATE_PATH =
-  process.env.SENTINEL_STATE_PATH ??
-  join(process.cwd(), ".sentinel", "state.json");
+  process.env.COUNTERSIGN_STATE_PATH ??
+  join(process.cwd(), ".countersign", "state.json");
 
 const TOKEN_TTL_MS = 5 * 60 * 1000;
 const MAX_LEDGER = 500;
@@ -44,9 +44,9 @@ function freshRisk(equity = 1000): RiskState {
   };
 }
 
-type Listener = (event: SentinelEvent) => void;
+type Listener = (event: CountersignEvent) => void;
 
-export type SentinelEvent =
+export type CountersignEvent =
   | { type: "verdict"; verdict: Verdict }
   | { type: "fill"; fill: Fill }
   | { type: "policy"; policy: Policy }
@@ -54,7 +54,7 @@ export type SentinelEvent =
   | { type: "halt"; halted: boolean; reason?: string };
 
 type Runtime = {
-  state: SentinelState;
+  state: CountersignState;
   secret: string;
   acceptedTradeTimes: number[];
   listeners: Set<Listener>;
@@ -62,14 +62,14 @@ type Runtime = {
 
 // Next dev-mode HMR re-evaluates modules; hang the singleton off globalThis so
 // the ledger survives a hot reload.
-const globalKey = Symbol.for("sentinel.runtime");
+const globalKey = Symbol.for("countersign.runtime");
 type GlobalWithRuntime = typeof globalThis & { [globalKey]?: Runtime };
 
 function load(): Runtime {
   const g = globalThis as GlobalWithRuntime;
   if (g[globalKey]) return g[globalKey];
 
-  let state: SentinelState = {
+  let state: CountersignState = {
     policy: { ...DEFAULT_POLICY },
     risk: freshRisk(),
     verdicts: [],
@@ -79,7 +79,7 @@ function load(): Runtime {
 
   try {
     const raw = readFileSync(/* turbopackIgnore: true */ STATE_PATH, "utf8");
-    const parsed = JSON.parse(raw) as SentinelState & { secret?: string };
+    const parsed = JSON.parse(raw) as CountersignState & { secret?: string };
     state = {
       policy: { ...DEFAULT_POLICY, ...parsed.policy },
       risk: { ...freshRisk(), ...parsed.risk },
@@ -117,7 +117,7 @@ function persist(rt: Runtime): void {
   }
 }
 
-function emit(rt: Runtime, event: SentinelEvent): void {
+function emit(rt: Runtime, event: CountersignEvent): void {
   for (const l of rt.listeners) {
     try {
       l(event);
@@ -142,12 +142,12 @@ function signToken(rt: Runtime, verdictId: string, nonce: string): string {
     .update(`${verdictId}.${nonce}`)
     .digest("hex")
     .slice(0, 24);
-  return `stn_${verdictId}_${nonce}_${mac}`;
+  return `csn_${verdictId}_${nonce}_${mac}`;
 }
 
 function verifyToken(rt: Runtime, token: string): string | null {
   const parts = token.split("_");
-  if (parts.length !== 4 || parts[0] !== "stn") return null;
+  if (parts.length !== 4 || parts[0] !== "csn") return null;
   const [, verdictId, nonce, mac] = parts;
   const expected = createHmac("sha256", rt.secret)
     .update(`${verdictId}.${nonce}`)
@@ -162,7 +162,7 @@ export function subscribe(listener: Listener): () => void {
   return () => rt.listeners.delete(listener);
 }
 
-export function getState(): SentinelState {
+export function getState(): CountersignState {
   const rt = load();
   rollDay(rt);
   return rt.state;
@@ -391,7 +391,7 @@ export type ReconcileReport = {
 };
 
 /**
- * Compare what the exchange says happened against what Sentinel authorised.
+ * Compare what the exchange says happened against what Countersign authorised.
  * Any exchange trade with no matching attested fill is an unattested order —
  * the agent traded without clearing policy first.
  */
@@ -492,7 +492,7 @@ export function buildReport(): SessionReport {
   };
 }
 
-export function resetSession(equity = 1000): SentinelState {
+export function resetSession(equity = 1000): CountersignState {
   const rt = load();
   rt.state.risk = freshRisk(equity);
   rt.state.verdicts = [];

@@ -1,7 +1,7 @@
 "use client";
 
 import { Fingerprint, ScrollText, TriangleAlert } from "lucide-react";
-import type { Fill } from "@/lib/sentinel/types";
+import type { Fill } from "@/lib/countersign/types";
 import { clock, num, usd } from "@/lib/format";
 import { Empty, Panel } from "./primitives";
 

@@ -1,4 +1,4 @@
-// Core domain types for Sentinel — the risk control plane for Binance Agent OS.
+// Core domain types for Countersign — the risk control plane for Binance Agent OS.
 
 export type Venue = "spot" | "margin" | "usdm-futures" | "coinm-futures";
 export type Side = "BUY" | "SELL";
@@ -119,7 +119,7 @@ export type RiskState = {
   positions: Record<string, Position>;
 };
 
-export type SentinelState = {
+export type CountersignState = {
   policy: Policy;
   risk: RiskState;
   verdicts: Verdict[];

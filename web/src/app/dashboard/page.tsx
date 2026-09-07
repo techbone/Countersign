@@ -17,7 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 
-import { useSentinel } from "@/lib/useSentinel";
+import { useCountersign } from "@/lib/useCountersign";
 import { Empty, Meter, Panel } from "@/components/primitives";
 import { VerdictCard } from "@/components/VerdictCard";
 import { PolicyPanel } from "@/components/PolicyPanel";
@@ -27,7 +27,7 @@ import { EquityField } from "@/components/EquityField";
 import { num, pct, usd } from "@/lib/format";
 
 export default function Dashboard() {
-  const { state, report, tickers, live, post } = useSentinel();
+  const { state, report, tickers, live, post } = useCountersign();
 
   if (!state || !report) {
     return (
@@ -67,7 +67,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="font-display text-sm font-bold leading-none tracking-tight text-fg">
-                SENTINEL
+                COUNTERSIGN
               </h1>
               <p className="mt-1 util leading-none text-dim">
                 Control plane

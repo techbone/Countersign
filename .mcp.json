@@ -4,11 +4,11 @@
       "type": "http",
       "url": "https://agent.binance.com/mcp/agentic"
     },
-    "sentinel": {
+    "countersign": {
       "command": "node",
       "args": ["./mcp/dist/index.js"],
       "env": {
-        "SENTINEL_URL": "http://localhost:3000"
+        "COUNTERSIGN_URL": "http://localhost:3000"
       }
     }
   }

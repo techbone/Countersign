@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { setEquity } from "@/lib/sentinel/store";
+import { setEquity } from "@/lib/countersign/store";
 import { parseBody } from "../_shared";
 
 export const dynamic = "force-dynamic";

@@ -107,7 +107,7 @@ export async function getMarketContext(
     } catch (err) {
       if (attempt === 1) {
         console.error(
-          `[sentinel] market data unavailable for ${symbol}:`,
+          `[countersign] market data unavailable for ${symbol}:`,
           err instanceof Error ? err.message : err,
         );
       }

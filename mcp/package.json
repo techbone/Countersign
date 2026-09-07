@@ -1,10 +1,10 @@
 {
-  "name": "sentinel-mcp",
+  "name": "countersign-mcp",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "bin": {
-    "sentinel-mcp": "dist/index.js"
+    "countersign-mcp": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",

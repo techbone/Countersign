@@ -15,8 +15,8 @@ vi.mock("./market", () => ({
   getTickers: async () => [],
 }));
 
-process.env.SENTINEL_STATE_PATH = join(
-  mkdtempSync(join(tmpdir(), "sentinel-test-")),
+process.env.COUNTERSIGN_STATE_PATH = join(
+  mkdtempSync(join(tmpdir(), "countersign-test-")),
   "state.json",
 );
 
@@ -50,7 +50,7 @@ describe("execution tokens", () => {
   it("mints a token on ALLOW and records the verdict", () => {
     return evaluateIntent(smallBuy).then((verdict) => {
       expect(verdict.decision).toBe("ALLOW");
-      expect(verdict.token).toMatch(/^stn_/);
+      expect(verdict.token).toMatch(/^csn_/);
       expect(verdict.tokenExpiresAt).toBeGreaterThan(Date.now());
       expect(getState().verdicts[0].id).toBe(verdict.id);
     });
@@ -80,7 +80,7 @@ describe("execution tokens", () => {
 
   it("rejects a forged signature", () => {
     const result = confirmFill({
-      token: "stn_deadbeef_aaaaaaaaaaaa_ffffffffffffffffffffffff",
+      token: "csn_deadbeef_aaaaaaaaaaaa_ffffffffffffffffffffffff",
       orderId: "9",
       executedQty: 1,
       avgPrice: 100,
@@ -92,7 +92,7 @@ describe("execution tokens", () => {
     const verdict = await evaluateIntent(smallBuy);
     const [, , nonce, mac] = verdict.token!.split("_");
     const result = confirmFill({
-      token: `stn_00000000_${nonce}_${mac}`,
+      token: `csn_00000000_${nonce}_${mac}`,
       orderId: "9",
       executedQty: 1,
       avgPrice: 100,
@@ -124,7 +124,7 @@ describe("human approval", () => {
     expect(verdict.token).toBeUndefined();
 
     const approved = resolveApproval(verdict.id, true, "operator");
-    expect(approved?.token).toMatch(/^stn_/);
+    expect(approved?.token).toMatch(/^csn_/);
     expect(approved?.approvedBy).toBe("operator");
   });
 
@@ -137,7 +137,7 @@ describe("human approval", () => {
 });
 
 describe("reconciliation", () => {
-  it("flags an exchange order that Sentinel never authorised", async () => {
+  it("flags an exchange order that Countersign never authorised", async () => {
     const verdict = await evaluateIntent(smallBuy);
     confirmFill({
       token: verdict.token!,

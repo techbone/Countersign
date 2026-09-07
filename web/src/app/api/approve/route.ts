@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { resolveApproval } from "@/lib/sentinel/store";
+import { resolveApproval } from "@/lib/countersign/store";
 import { parseBody, jsonError } from "../_shared";
 
 export const dynamic = "force-dynamic";

@@ -31,7 +31,7 @@ function Nav() {
         <div className="flex items-center gap-2.5">
           <ShieldCheck className="size-4 text-acid" strokeWidth={2.4} />
           <span className="font-display text-sm font-bold tracking-tight">
-            SENTINEL
+            COUNTERSIGN
           </span>
         </div>
         <span className="util hidden text-dim md:block">
@@ -82,13 +82,13 @@ function Hero() {
             <h1 className="font-display mt-10 text-[13vw] leading-[0.85] font-bold tracking-[-0.045em] sm:text-7xl md:text-8xl xl:text-[7.5rem]">
               Agents trade.
               <br />
-              <span className="text-dim">Sentinel</span>{" "}
+              <span className="text-dim">Countersign</span>{" "}
               <span className="text-acid">decides.</span>
             </h1>
 
             <p className="mt-12 max-w-lg text-base leading-relaxed text-muted">
               Binance shipped the execution rails and left the guardrails to
-              you. Sentinel is the layer in between — every order an agent wants
+              you. Countersign is the layer in between — every order an agent wants
               to place clears{" "}
               <span className="text-fg">fifteen deterministic rules</span>{" "}
               first, and every fill is signed, single-use and reconciled after.
@@ -103,7 +103,7 @@ function Hero() {
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <a
-                href="https://github.com/techbone/sentinel"
+                href="https://github.com/techbone/countersign"
                 className="inline-flex items-center gap-2.5 rounded-full border border-edge-bright px-7 py-4 text-sm font-medium text-muted transition hover:border-dim hover:text-fg"
               >
                 <Terminal className="size-4" />
@@ -294,12 +294,12 @@ function Showcase() {
 const STEPS = [
   {
     n: "01",
-    tool: "sentinel_get_policy",
+    tool: "countersign_get_policy",
     text: "Read the limits and current headroom. Size the trade to fit.",
   },
   {
     n: "02",
-    tool: "sentinel_evaluate_trade",
+    tool: "countersign_evaluate_trade",
     text: "Submit the exact order. Receive ALLOW, BLOCK or NEEDS_APPROVAL.",
   },
   {
@@ -309,7 +309,7 @@ const STEPS = [
   },
   {
     n: "04",
-    tool: "sentinel_confirm_fill",
+    tool: "countersign_confirm_fill",
     text: "Attest the fill against its token. Coverage stays at 100%.",
   },
 ];
@@ -384,7 +384,7 @@ function Footer() {
               </p>
             </div>
             <p className="util mt-10 text-dim">
-              Sentinel · Binance Agent OS Mini Hackathon
+              Countersign · Binance Agent OS Mini Hackathon
             </p>
           </div>
         </div>

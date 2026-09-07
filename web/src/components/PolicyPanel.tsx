@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Lock, SlidersHorizontal } from "lucide-react";
-import type { Policy } from "@/lib/sentinel/types";
+import type { Policy } from "@/lib/countersign/types";
 import { Panel } from "./primitives";
 
 type Field = {

@@ -16,7 +16,7 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sentinel — Risk Control Plane for Binance Agent OS",
+  title: "Countersign — Risk Control Plane for Binance Agent OS",
   description:
     "Policy enforcement, human-in-the-loop approval and cryptographic trade attestation for AI agents trading on Binance Agent OS.",
 };

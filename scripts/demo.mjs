@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Seeds a realistic Sentinel session so the dashboard has something to show.
+ * Seeds a realistic Countersign session so the dashboard has something to show.
  * Everything here goes through the same public API the MCP server uses —
  * there is no privileged back door.
  *
  *   node scripts/demo.mjs
  */
 
-const BASE = process.env.SENTINEL_URL ?? "http://localhost:3000";
+const BASE = process.env.COUNTERSIGN_URL ?? "http://localhost:3000";
 
 const api = async (path, body, method = "POST") => {
   const res = await fetch(`${BASE}/api${path}`, {
@@ -28,7 +28,7 @@ const show = (v) => {
   console.log(`   ${colour}${v.decision}\x1b[0m — ${v.summary}`);
 };
 
-console.log("\x1b[1mSentinel demo — seeding a session\x1b[0m");
+console.log("\x1b[1mCountersign demo — seeding a session\x1b[0m");
 
 await api("/reset", { equity: 500 });
 // Cooldown off while seeding so the script does not block itself.
@@ -98,7 +98,7 @@ show(
 );
 console.log("   \x1b[33m→\x1b[0m waiting for a human click in the dashboard");
 
-step(5, "Reconciling against exchange history — one order bypassed Sentinel");
+step(5, "Reconciling against exchange history — one order bypassed Countersign");
 const history = [
   {
     orderId: "ROGUE-4417",
@@ -108,7 +108,7 @@ const history = [
     price: ok.markPrice || 79000,
   },
 ];
-// Include the order Sentinel did authorise, so coverage is a real ratio.
+// Include the order Countersign did authorise, so coverage is a real ratio.
 if (goodOrderId) {
   history.unshift({
     orderId: goodOrderId,

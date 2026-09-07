@@ -1,4 +1,4 @@
-import { subscribe, type SentinelEvent } from "@/lib/sentinel/store";
+import { subscribe, type CountersignEvent } from "@/lib/countersign/store";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,7 +11,7 @@ export async function GET() {
 
   const stream = new ReadableStream({
     start(controller) {
-      const send = (event: SentinelEvent | { type: "ping" }) => {
+      const send = (event: CountersignEvent | { type: "ping" }) => {
         try {
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(event)}\n\n`),

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getTickers } from "@/lib/sentinel/market";
-import { getState } from "@/lib/sentinel/store";
+import { getTickers } from "@/lib/countersign/market";
+import { getState } from "@/lib/countersign/store";
 
 export const dynamic = "force-dynamic";
 

@@ -1,7 +1,7 @@
 node_modules/
 .next/
 dist/
-.sentinel/
+.countersign/
 *.tsbuildinfo
 .DS_Store
 .env

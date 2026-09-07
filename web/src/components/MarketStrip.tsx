@@ -1,7 +1,7 @@
 "use client";
 
 import { TrendingDown, TrendingUp } from "lucide-react";
-import type { Ticker } from "@/lib/sentinel/market";
+import type { Ticker } from "@/lib/countersign/market";
 import { usd } from "@/lib/format";
 
 export function MarketStrip({ tickers }: { tickers: Ticker[] }) {

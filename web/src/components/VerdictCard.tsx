@@ -13,7 +13,7 @@ import {
   ShieldX,
   X,
 } from "lucide-react";
-import type { Verdict } from "@/lib/sentinel/types";
+import type { Verdict } from "@/lib/countersign/types";
 import { clock, usd } from "@/lib/format";
 import { Chip } from "./primitives";
 

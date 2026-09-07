@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildReport } from "@/lib/sentinel/store";
+import { buildReport } from "@/lib/countersign/store";
 
 export const dynamic = "force-dynamic";
 

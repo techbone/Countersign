@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getState } from "@/lib/sentinel/store";
+import { getState } from "@/lib/countersign/store";
 
 export const dynamic = "force-dynamic";
 

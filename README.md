@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ Sentinel
+# 🛡️ Countersign
 
 **The risk control plane for Binance Agent OS.**
 
@@ -32,11 +32,11 @@ questions:
 2. **Who signed off on it?**
 3. **Can you prove afterwards that the agent actually obeyed?**
 
-Sentinel answers all three.
+Countersign answers all three.
 
 ## Who this is for
 
-Developers building agents against Agent OS — not end users. Sentinel is
+Developers building agents against Agent OS — not end users. Countersign is
 infrastructure: it assumes you are the operator, running it on your own machine,
 in front of your own sub-account. It is a local control plane with no auth and a
 JSON state file, deliberately, because the operator and the machine are the same
@@ -45,7 +45,7 @@ authenticated dashboard — see [Notes and limits](#notes-and-limits).
 
 ## What it is
 
-Sentinel sits between your agent and Binance as a second MCP server. The agent
+Countersign sits between your agent and Binance as a second MCP server. The agent
 must clear policy *before* it is allowed to place an order, and must attest the
 fill *after*.
 
@@ -58,7 +58,7 @@ fill *after*.
                  (mandatory)│                        │     (needs token)
                             ▼                        ▼
         ┌───────────────────────────────┐   ┌──────────────────────┐
-        │   sentinel  (MCP, local)      │   │  binance  (MCP, HTTP)│
+        │   countersign  (MCP, local)      │   │  binance  (MCP, HTTP)│
         │                               │   │  agent.binance.com   │
         │  ┌─────────────────────────┐  │   │  OAuth 2.1 + PKCE    │
         │  │  15-rule policy engine  │  │   │  Agentic sub-account │
@@ -85,14 +85,14 @@ fill *after*.
 ### Why this is enforcement, not vibes
 
 Most "AI guardrail" demos are a paragraph in a system prompt. A model that
-ignores the paragraph fails silently and nobody finds out. Sentinel is built so
+ignores the paragraph fails silently and nobody finds out. Countersign is built so
 that **non-compliance is detectable after the fact**:
 
 - Every `ALLOW` mints an **HMAC-signed, single-use token** bound to that verdict,
   expiring in 5 minutes.
-- `sentinel_confirm_fill` refuses a forged token, an expired token, and a replayed
+- `countersign_confirm_fill` refuses a forged token, an expired token, and a replayed
   token.
-- `sentinel_reconcile` takes the trade history straight from the Binance MCP
+- `countersign_reconcile` takes the trade history straight from the Binance MCP
   server and diffs it against the ledger. **Any order that reached the exchange
   without a token is permanently recorded as `UNATTESTED`** and the dashboard
   shows attestation coverage below 100%.
@@ -102,8 +102,8 @@ misbehaves, you have proof, on the same screen, in the same session.*
 
 ### The policy is deliberately read-only to the agent
 
-The Sentinel MCP server exposes **no tool that widens a limit or resumes trading.**
-An agent can `sentinel_halt` — tightening the leash, one-way — but only a human
+The Countersign MCP server exposes **no tool that widens a limit or resumes trading.**
+An agent can `countersign_halt` — tightening the leash, one-way — but only a human
 at the dashboard can raise a cap or resume after a breaker trips. Guardrails an
 agent can edit are not guardrails.
 
@@ -138,7 +138,7 @@ waiting for the agent to ask permission for its next trade.
 Requires Node 20+ and [Claude Code](https://claude.com/claude-code).
 
 ```bash
-git clone git@github.com:techbone/sentinel.git && cd sentinel
+git clone git@github.com:techbone/countersign.git && cd countersign
 
 npm run setup     # installs both packages, builds the MCP server
 npm run dev       # landing → localhost:3000 · control plane → /dashboard
@@ -155,7 +155,7 @@ up automatically:
 | Server | Transport | Purpose |
 |---|---|---|
 | `binance` | HTTP → `https://agent.binance.com/mcp/agentic` | Real execution. Browser OAuth on first use. |
-| `sentinel` | stdio → `./mcp/dist/index.js` | Policy, approval, attestation. |
+| `countersign` | stdio → `./mcp/dist/index.js` | Policy, approval, attestation. |
 
 On first use Binance opens a consent screen. Grant **market data**, **account**
 and **trade**; Agent OS has no withdrawal scope at all, so funds can never leave
@@ -179,25 +179,25 @@ reconciliation. Then open http://localhost:3000/dashboard.
 
 | Tool | Purpose |
 |---|---|
-| `sentinel_get_policy` | Read limits and live headroom. Read-only. |
-| `sentinel_evaluate_trade` | **Mandatory pre-trade check.** Returns ALLOW / BLOCK / NEEDS_APPROVAL. |
-| `sentinel_check_verdict` | Read a verdict back by id — how the agent learns a human approved it. |
-| `sentinel_confirm_fill` | Attest an executed fill against its single-use token. |
-| `sentinel_reconcile` | Diff exchange history against the ledger; flag unattested orders. |
-| `sentinel_session_report` | Verdict counts, attestation coverage, drawdown, top blocking rules. |
-| `sentinel_halt` | Emergency stop. One-way — only a human resumes. |
+| `countersign_get_policy` | Read limits and live headroom. Read-only. |
+| `countersign_evaluate_trade` | **Mandatory pre-trade check.** Returns ALLOW / BLOCK / NEEDS_APPROVAL. |
+| `countersign_check_verdict` | Read a verdict back by id — how the agent learns a human approved it. |
+| `countersign_confirm_fill` | Attest an executed fill against its single-use token. |
+| `countersign_reconcile` | Diff exchange history against the ledger; flag unattested orders. |
+| `countersign_session_report` | Verdict counts, attestation coverage, drawdown, top blocking rules. |
+| `countersign_halt` | Emergency stop. One-way — only a human resumes. |
 
 ## Layout
 
 ```
 web/                      Next.js 16 dashboard + policy API (the control plane)
-  src/lib/sentinel/
+  src/lib/countersign/
     policy.ts             the 15 rules — pure, deterministic, no network
     store.ts              state, HMAC tokens, attestation ledger, SSE bus
     market.ts             live prices + realised volatility (public API, no auth)
   src/app/api/            evaluate · confirm · approve · halt · reconcile · report · events
   src/components/         verdict stream, policy editor, ledger, gauges
-mcp/                      Sentinel MCP server (stdio)
+mcp/                      Countersign MCP server (stdio)
 scripts/demo.mjs          seeds a full session for the demo
 CLAUDE.md                 the agent contract
 .mcp.json                 registers both MCP servers
@@ -208,7 +208,7 @@ inputs, same verdict, every time — no model in the decision path.
 
 ## Notes and limits
 
-- State lives in `web/.sentinel/state.json` — fine for a hackathon and a single
+- State lives in `web/.countersign/state.json` — fine for a hackathon and a single
   operator; a real deployment wants a database and per-agent identity.
 - Equity is seeded by the operator (`POST /api/equity`) or from the demo script.
   Wiring it to live sub-account balances is the obvious next step.

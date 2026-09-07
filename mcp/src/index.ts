@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Sentinel MCP server — the risk control plane an agent must clear before it is
+ * Countersign MCP server — the risk control plane an agent must clear before it is
  * allowed to touch Binance Agent OS.
  *
  * Deliberately NOT exposed here: any tool that loosens policy or resumes trading.
- * An agent may tighten the leash (sentinel_halt) but only a human at the
+ * An agent may tighten the leash (countersign_halt) but only a human at the
  * dashboard can widen it again. Self-editing guardrails are not guardrails.
  */
 
@@ -12,7 +12,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const SENTINEL_URL = process.env.SENTINEL_URL ?? "http://localhost:3000";
+const COUNTERSIGN_URL = process.env.COUNTERSIGN_URL ?? "http://localhost:3000";
 
 type Json = Record<string, unknown>;
 
@@ -20,7 +20,7 @@ async function call(
   path: string,
   init?: { method?: string; body?: unknown },
 ): Promise<Json> {
-  const res = await fetch(`${SENTINEL_URL}/api${path}`, {
+  const res = await fetch(`${COUNTERSIGN_URL}/api${path}`, {
     method: init?.method ?? "GET",
     headers: { "Content-Type": "application/json" },
     body: init?.body ? JSON.stringify(init.body) : undefined,
@@ -31,7 +31,7 @@ async function call(
     parsed = JSON.parse(text) as Json;
   } catch {
     throw new Error(
-      `Sentinel returned a non-JSON response (${res.status}). Is the dashboard running at ${SENTINEL_URL}?`,
+      `Countersign returned a non-JSON response (${res.status}). Is the dashboard running at ${COUNTERSIGN_URL}?`,
     );
   }
   if (!res.ok) throw new Error(String(parsed.error ?? `HTTP ${res.status}`));
@@ -57,16 +57,16 @@ async function guard<T>(fn: () => Promise<T>) {
     return text(await fn());
   } catch (err) {
     return text(
-      `Sentinel error: ${err instanceof Error ? err.message : String(err)}`,
+      `Countersign error: ${err instanceof Error ? err.message : String(err)}`,
       true,
     );
   }
 }
 
-const server = new McpServer({ name: "sentinel", version: "0.1.0" });
+const server = new McpServer({ name: "countersign", version: "0.1.0" });
 
 server.registerTool(
-  "sentinel_get_policy",
+  "countersign_get_policy",
   {
     title: "Get risk policy",
     description:
@@ -84,11 +84,11 @@ server.registerTool(
 );
 
 server.registerTool(
-  "sentinel_evaluate_trade",
+  "countersign_evaluate_trade",
   {
     title: "Evaluate a trade against policy",
     description:
-      "MANDATORY pre-trade check. Submit the exact order you intend to place on Binance. Sentinel runs 15 deterministic rules and returns ALLOW, BLOCK or NEEDS_APPROVAL. On ALLOW you receive a single-use execution token that expires in 5 minutes — you must NOT place the order without one. On NEEDS_APPROVAL a human must approve in the dashboard before a token is issued. On BLOCK, do not place the order: report the blocking rules to the user instead.",
+      "MANDATORY pre-trade check. Submit the exact order you intend to place on Binance. Countersign runs 15 deterministic rules and returns ALLOW, BLOCK or NEEDS_APPROVAL. On ALLOW you receive a single-use execution token that expires in 5 minutes — you must NOT place the order without one. On NEEDS_APPROVAL a human must approve in the dashboard before a token is issued. On BLOCK, do not place the order: report the blocking rules to the user instead.",
     inputSchema: {
       symbol: z
         .string()
@@ -127,9 +127,9 @@ server.registerTool(
 
       const next =
         v.decision === "ALLOW"
-          ? "Place the order on Binance now, then immediately call sentinel_confirm_fill with this token and the real orderId."
+          ? "Place the order on Binance now, then immediately call countersign_confirm_fill with this token and the real orderId."
           : v.decision === "NEEDS_APPROVAL"
-            ? `Do NOT place this order. Tell the user it is waiting for their approval in the Sentinel dashboard, then poll sentinel_check_verdict with verdictId "${v.id}" until it returns a token. Do NOT call sentinel_evaluate_trade again — that would abandon the verdict the human is looking at.`
+            ? `Do NOT place this order. Tell the user it is waiting for their approval in the Countersign dashboard, then poll countersign_check_verdict with verdictId "${v.id}" until it returns a token. Do NOT call countersign_evaluate_trade again — that would abandon the verdict the human is looking at.`
             : "Do NOT place this order. Report the blocking rules to the user and suggest a compliant alternative (for example a smaller size).";
 
       return { ...v, next_step: next };
@@ -137,15 +137,15 @@ server.registerTool(
 );
 
 server.registerTool(
-  "sentinel_check_verdict",
+  "countersign_check_verdict",
   {
     title: "Check a verdict for approval",
     description:
-      "Read back a verdict you already submitted, by its id. This is how you learn that a human approved a NEEDS_APPROVAL trade: once they approve in the dashboard, this returns the execution token. Poll this after a NEEDS_APPROVAL verdict — do NOT call sentinel_evaluate_trade again, because that mints a brand-new verdict and abandons the one the human is looking at.",
+      "Read back a verdict you already submitted, by its id. This is how you learn that a human approved a NEEDS_APPROVAL trade: once they approve in the dashboard, this returns the execution token. Poll this after a NEEDS_APPROVAL verdict — do NOT call countersign_evaluate_trade again, because that mints a brand-new verdict and abandons the one the human is looking at.",
     inputSchema: {
       verdictId: z
         .string()
-        .describe("The id returned by sentinel_evaluate_trade"),
+        .describe("The id returned by countersign_evaluate_trade"),
     },
   },
   async ({ verdictId }) =>
@@ -167,21 +167,21 @@ server.registerTool(
         : v.rejectedAt
           ? "The human rejected this trade. Do not place it. Ask the user what they want to do instead."
           : v.token && !expired
-            ? "Approved. Place the order on Binance now, then call sentinel_confirm_fill with this token and the real orderId."
+            ? "Approved. Place the order on Binance now, then call countersign_confirm_fill with this token and the real orderId."
             : v.token && expired
-              ? "The token expired before it was used. Call sentinel_evaluate_trade again to request a fresh approval."
-              : "Still waiting on a human. Tell the user it is pending in the Sentinel dashboard, then check again — do not re-evaluate.";
+              ? "The token expired before it was used. Call countersign_evaluate_trade again to request a fresh approval."
+              : "Still waiting on a human. Tell the user it is pending in the Countersign dashboard, then check again — do not re-evaluate.";
 
       return { ...v, token_expired: expired, next_step: next };
     }),
 );
 
 server.registerTool(
-  "sentinel_confirm_fill",
+  "countersign_confirm_fill",
   {
     title: "Attest an executed fill",
     description:
-      "Call immediately after a Binance order executes, using the token from sentinel_evaluate_trade. This consumes the token and writes the fill to the attestation ledger, updating positions, realised P&L and the daily budget. Fills that are never attested show up as UNATTESTED during reconciliation.",
+      "Call immediately after a Binance order executes, using the token from countersign_evaluate_trade. This consumes the token and writes the fill to the attestation ledger, updating positions, realised P&L and the daily budget. Fills that are never attested show up as UNATTESTED during reconciliation.",
     inputSchema: {
       token: z.string().describe("The single-use token from the ALLOW verdict"),
       orderId: z
@@ -196,11 +196,11 @@ server.registerTool(
 );
 
 server.registerTool(
-  "sentinel_reconcile",
+  "countersign_reconcile",
   {
     title: "Reconcile exchange trades against the ledger",
     description:
-      "Pass the trade history you fetched from the Binance MCP server. Sentinel compares it against what it authorised and flags any order that was executed without a token — proof of whether the agent actually stayed inside its guardrails.",
+      "Pass the trade history you fetched from the Binance MCP server. Countersign compares it against what it authorised and flags any order that was executed without a token — proof of whether the agent actually stayed inside its guardrails.",
     inputSchema: {
       trades: z.array(
         z.object({
@@ -219,7 +219,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "sentinel_session_report",
+  "countersign_session_report",
   {
     title: "Session risk report",
     description:
@@ -230,7 +230,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "sentinel_halt",
+  "countersign_halt",
   {
     title: "Emergency stop",
     description:
@@ -247,11 +247,11 @@ server.registerTool(
       });
       return {
         ...risk,
-        note: "Trading halted. Only the operator can resume, from the Sentinel dashboard.",
+        note: "Trading halted. Only the operator can resume, from the Countersign dashboard.",
       };
     }),
 );
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error(`[sentinel] MCP server ready, control plane at ${SENTINEL_URL}`);
+console.error(`[countersign] MCP server ready, control plane at ${COUNTERSIGN_URL}`);

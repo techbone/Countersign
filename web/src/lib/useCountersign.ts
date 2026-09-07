@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { SentinelState } from "./sentinel/types";
-import type { Ticker } from "./sentinel/market";
+import type { CountersignState } from "./countersign/types";
+import type { Ticker } from "./countersign/market";
 
 type Report = {
   verdictCounts: Record<string, number>;
@@ -15,8 +15,8 @@ type Report = {
   topBlockReasons: { rule: string; count: number }[];
 };
 
-export function useSentinel() {
-  const [state, setState] = useState<SentinelState | null>(null);
+export function useCountersign() {
+  const [state, setState] = useState<CountersignState | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [tickers, setTickers] = useState<Ticker[]>([]);
   const [live, setLive] = useState(false);
