@@ -103,7 +103,7 @@ function Hero() {
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <a
-                href="https://github.com"
+                href="https://github.com/techbone/sentinel"
                 className="inline-flex items-center gap-2.5 rounded-full border border-edge-bright px-7 py-4 text-sm font-medium text-muted transition hover:border-dim hover:text-fg"
               >
                 <Terminal className="size-4" />
